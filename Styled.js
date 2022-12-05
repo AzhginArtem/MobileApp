@@ -21,6 +21,7 @@ background: purple;
 align-items: center;
 justify-content: center;
 height: 780px;
+padding: 0px 20px;
 `
 
 export {Title, Body, HeaderTitle}

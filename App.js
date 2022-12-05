@@ -11,11 +11,23 @@ export default function App() {
   const [prevList, ChangePrevList] = useState([]);
   const [gestureName, ChangeGestureName] = useState('none');
   const fadeAnim = useRef(new Animated.Value(1)).current;
+  const transition = useRef(new Animated.Value(0)).current;
 
   const onSwipeUp = async (gestureState) => {
     let promise = new Promise((resolve) => {
-      startAnimate()
-      setTimeout(() => resolve(Math.floor(Math.random()*95)), 300);
+      nextSlide()
+      setTimeout(() => {
+        let num = Math.floor(Math.random()*95);
+        let check = false;
+        while (!check) {
+          if (prevList.includes(num)) {
+            num = Math.floor(Math.random()*95);
+          } else {
+            check = true;
+            resolve(num);
+          }
+        }
+      }, 300);
     });
     let result = await promise;
     ChangePrevList(prevList => [...prevList, listNum]);
@@ -23,12 +35,16 @@ export default function App() {
   }
 
   const onSwipeDown = async(gestureState) => {
-    let promise = new Promise((resolve) => {
-      startAnimate()
-      setTimeout(() => resolve(Math.floor(Math.random()*95)), 300);
-    });
-    let result = await promise;
-    ChangeListNum(prevList.pop());
+    if (prevList.length == 0) {
+      shakeAnimate();
+    } else {
+      let promise = new Promise((resolve) => {
+        nextSlide()
+        setTimeout(() => resolve(Math.floor(Math.random()*95)), 300);
+      });
+      let result = await promise;
+      ChangeListNum(prevList.pop());
+    }
   }
 
   const onSwipe = async(gestureName, gestureState) => {
@@ -42,7 +58,7 @@ export default function App() {
     }
   }
 
-  const startAnimate = () => {
+  const nextSlide = () => {
     Animated.sequence([
       Animated.timing(fadeAnim, {
         toValue: 0,
@@ -54,6 +70,35 @@ export default function App() {
         duration: 300,
         useNativeDriver: true,
       })
+    ]).start()
+  }
+  const shakeAnimate = () => {
+    Animated.sequence([
+      Animated.timing(transition, {
+        toValue: -10,
+        duration: 25,
+        useNativeDriver: true,
+      }),
+      Animated.timing(transition, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(transition, {
+        toValue: -10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(transition, {
+        toValue: 10,
+        duration: 50,
+        useNativeDriver: true,
+      }),
+      Animated.timing(transition, {
+        toValue: 0,
+        duration: 25,
+        useNativeDriver: true,
+      }),
     ]).start()
   }
 
@@ -70,7 +115,7 @@ export default function App() {
     config={config}>
       <Header/>
       <Styled.Body>
-        <Animated.View style={{opacity: fadeAnim}}>
+        <Animated.View style={{opacity: fadeAnim, transform: [{translateX: transition}]}}>
           <Styled.Title>{list[listNum]}</Styled.Title>
         </Animated.View>
       </Styled.Body>
